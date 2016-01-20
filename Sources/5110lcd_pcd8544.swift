@@ -95,7 +95,7 @@ public class PCD8544{
             currentX += i % width 
             currentY = i / width
         }
-        updateBoundingBox(0, ymin:0, xmax:currentX+currentFontWidth, ymax:currentY+currentFontHeight) //TODO FIX min xy
+        updateBoundingBox(x, ymin:y, xmax:currentX, ymax:currentY)
     }          
 
     public func loadFontAsDefault(font:[UInt8], fontWidth:Int, fontHeight:Int){
