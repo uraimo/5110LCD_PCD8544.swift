@@ -70,20 +70,20 @@ public class PCD8544{
 
         // x is which column
  	    if (color == .WHITE){
-		    pcd8544_buffer[x + (y/8)*LCDWIDTH] |= UInt8(0x1 << y%8)
+		    pcd8544_buffer[x + (y/8)*LCDWIDTH] |= UInt8(truncatingBitPattern:0x1 << y%8)
 	    }else{                        
-		    pcd8544_buffer[x + (y/8)*LCDWIDTH] &= UInt8(~(0x1 << y%8))
+		    pcd8544_buffer[x + (y/8)*LCDWIDTH] &= UInt8(truncatingBitPattern:~(0x1 << y%8))
         }
         updateBoundingBox(x,ymin:y,xmax:x,ymax:y)
     }
 
     // the most basic function, get a single pixel
-    public func getPixel(x:Int, y:Int)->UInt8 {  //TODO enum?
+    public func getPixel(x:Int, y:Int)->UInt8 {
         guard ((x < LCDWIDTH) && (y < LCDHEIGHT)) else {
             return 0
         }
 
-        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(y)%8)) & 0x1; 
+        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(truncatingBitPattern:y)%8)) & 0x1; 
     } 
 
     public func drawImage(imageBuffer:[UInt8],x:Int,y:Int,width:Int,height:Int){
@@ -196,7 +196,7 @@ public class PCD8544{
     private func command(commandcode:Int){
         dc.value = 0
         cs.value = 0
-        spi.sendByte(UInt8(commandcode))
+        spi.sendByte(UInt8(truncatingBitPattern:commandcode))
         cs.value = 1
     }
 
