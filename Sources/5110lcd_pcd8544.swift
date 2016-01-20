@@ -5,7 +5,6 @@
     import Darwin //Needed for TravisCI
 #endif
  
-
 internal let LCDHEIGHT=48
 internal let LCDWIDTH=84
 
@@ -26,9 +25,9 @@ public class PCD8544{
         rst.direction = .OUT
         cs.direction = .OUT
         rst.value = 0
-        //TODO delay 500ms or so
+        usleep(UInt32(500*1000))
         rst.value = 1
-        //TODO turn to enums?
+
         // get into the EXTENDED mode!
         command(PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
 
