@@ -91,9 +91,9 @@ public class PCD8544{
         var currentY=y
 
         for i in 0..<pcd8544_buffer.count {
-            setPixel(currentX, y:currentY, color: LCDColor(rawValue:imageBuffer[i]) ?? .BLACK)
-            currentX += i % width 
+            currentX = i % width 
             currentY = i / width
+            setPixel(currentX, y:currentY, color: LCDColor(rawValue:imageBuffer[i]) ?? .BLACK)
         }
         updateBoundingBox(x, ymin:y, xmax:currentX, ymax:currentY)
     }          
