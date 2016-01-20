@@ -210,11 +210,10 @@ public class PCD8544{
     private var xUpdateMin:Int=0, xUpdateMax:Int=0, yUpdateMin:Int=0, yUpdateMax:Int=0  
     
     private func updateBoundingBox(xmin:Int, ymin:Int, xmax:Int, ymax:Int) {
-        //TODO check bounds
-        xUpdateMin = (xmin < xUpdateMin) ? xmin : xUpdateMin
-        xUpdateMax = (xmax > xUpdateMax) ? xmax : xUpdateMax
-        yUpdateMin = (ymin < yUpdateMin) ? ymin : yUpdateMin
-        yUpdateMax = (ymax > yUpdateMax) ? ymax : yUpdateMax
+        xUpdateMin = (xmin>0)&&(xmin<LCDWIDTH)&&(xmin < xUpdateMin) ? xmin : xUpdateMin
+        xUpdateMax = (xmax>0)&&(xmin<LCDWIDTH)&&(xmax > xUpdateMax) ? xmax : xUpdateMax
+        yUpdateMin = (ymin>0)&&(xmin<LCDHEIGHT)&&(ymin < yUpdateMin) ? ymin : yUpdateMin
+        yUpdateMax = (ymax>0)&&(xmin<LCDHTIGHT)&&(ymax > yUpdateMax) ? ymax : yUpdateMax
     }
   
 }
