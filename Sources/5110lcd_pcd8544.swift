@@ -2,19 +2,20 @@
     //import SwiftyGPIO  //Uncomment this to use when using the package manager
     import Glibc
 #else
-    import Darwin //Just to allow build with TravisCI
+    import Darwin //Needed for TravisCI
 #endif
+ 
 
-let LCDHEIGHT=48
-let LCDWIDTH=84
+internal let LCDHEIGHT=48
+internal let LCDWIDTH=84
 
-class PCD8544{
+public class PCD8544{
     var dc,rst,cs:GPIO
     var spi:VirtualSPI
-    var pcd8544_buffer:[UInt8]=[UInt8](count:LCDHEIGHT*LCDWIDTH/8, repeatedValue:0)
-    var currentFont:[UInt8]
-    var currentFontWidth,currentFontHeight:UInt8
-
+    var pcd8544_buffer=[UInt8](count:LCDHEIGHT*LCDWIDTH/8, repeatedValue:0)
+    var currentFont=[UInt8]()
+    var currentFontWidth=0,currentFontHeight=0
+ 
 
     init(spi:VirtualSPI,dc:GPIO,rst:GPIO,cs:GPIO){
         self.spi=spi
@@ -32,13 +33,10 @@ class PCD8544{
         command(PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
 
         // LCD bias select (4 is optimal?)
-        command(PCD8544_SETBIAS | bias);  //TODO  0x4
+        command(PCD8544_SETBIAS | 0x4);
 
         // set VOP
-        if (contrast > 0x7f) //TODO
-            contrast = 0x7f;
-
-        command( PCD8544_SETVOP | contrast); // Experimentally determined //TODO
+        command( PCD8544_SETVOP | 0x7f); // Experimentally determined //TODO
 
         // normal mode
         command(PCD8544_FUNCTIONSET);
@@ -52,56 +50,57 @@ class PCD8544{
         // write display data
 
         // set up a bounding box for screen updates
-        updateBoundingBox(0, 0, LCDWIDTH-1, LCDHEIGHT-1);
+        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1);
     }
     
-    public func setContrast(value: UInt8){
+    public func setContrast(value: Int){
         var v=value
         if (v > 0x7f) {
             v = 0x7f   
         }
         command(PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
-        command( PCD8544_SETVOP | val); 
+        command(PCD8544_SETVOP | v); 
         command(PCD8544_FUNCTIONSET); 
     }
 
     // the most basic function, set a single pixel
-    public func setPixel(x:UInt8, y:UInt8, color:LCDColor) {
+    public func setPixel(x:Int, y:Int, color:LCDColor) {
         guard ((x < LCDWIDTH) && (y < LCDHEIGHT)) else {
-            return 0
+            return
         }
 
         // x is which column
- 	    if (color==.WHITE){
-		    pcd8544_buffer[x+ (y/8)*LCDWIDTH] |= 0x1 << y%8
+ 	    if (color == .WHITE){
+		    pcd8544_buffer[x + (y/8)*LCDWIDTH] |= UInt8(0x1 << y%8)
 	    }else{                        
-		    pcd8544_buffer[x+ (y/8)*LCDWIDTH] &= ~(0x1 << y%8)
+		    pcd8544_buffer[x + (y/8)*LCDWIDTH] &= UInt8(~(0x1 << y%8))
         }
-        updateBoundingBox(x,y,x,y)
+        updateBoundingBox(x,ymin:y,xmax:x,ymax:y)
     }
 
     // the most basic function, get a single pixel
-    public func getPixel(x:UInt8, y:UInt8)->UInt8 {
+    public func getPixel(x:Int, y:Int)->UInt8 {  //TODO enum?
         guard ((x < LCDWIDTH) && (y < LCDHEIGHT)) else {
             return 0
         }
 
-        return (pcd8544_buffer[x+ (y/8)*LCDWIDTH] >> (y%8)) & 0x1; 
+        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(y)%8)) & 0x1; 
     } 
 
-    public func drawImage(imageBuffer:[UInt8],x:UInt8,y:UInt8,width:UInt8,height:UInt8){
+    public func drawImage(imageBuffer:[UInt8],x:Int,y:Int,width:Int,height:Int){
         var currentX=x
         var currentY=y
 
         for i in 0..<pcd8544_buffer.count {
-            setPixel(currentX, currentY, color:LCDColor(rawValue:imageBuffer[XXX]))
+            setPixel(currentX, y:currentY, color: LCDColor(rawValue:imageBuffer[i]) ?? .BLACK)
             currentX += i % width 
+            currentY = i / width
         }
-        updateBoundingBox(0, 0, , currentY+currentFontHeight)
+        updateBoundingBox(0, ymin:0, xmax:currentX+currentFontWidth, ymax:currentY+currentFontHeight) //TODO FIX min xy
     }          
 
-    public func loadFontAsDefault(font:[UInt8], fontWidth:UInt8, fontHeight:UInt8){
-        guard font.count==fontWidth*fontHeight else {
+    public func loadFontAsDefault(font:[UInt8], fontWidth:Int, fontHeight:Int){
+        guard font.count == fontWidth*fontHeight else {
             return; //TODO error
         }
         self.currentFontHeight = fontHeight
@@ -109,7 +108,7 @@ class PCD8544{
         self.currentFont = font
     }
 
-    public func drawString(text:String, posX:UInt8, posY:UInt8){
+    public func drawString(text:String, posX:Int, posY:Int, transparent:Bool){
         var cursorX=posX
         var cursorY=posY
         for scalar in text.unicodeScalars {
@@ -117,37 +116,41 @@ class PCD8544{
                 cursorY += currentFontHeight // \n character
                 return
             }
-            drawChar(scalar.value, cursorX, cursorY)
+            drawChar(scalar.value, posX:cursorX, posY:cursorY, transparent:transparent)
             cursorX += currentFontWidth
         }        
-        updateBoundingBox(posX, posY, cursorX+currentFontWidth, currentY+currentFontHeight)
+        updateBoundingBox(posX, ymin:posY, xmax:cursorX+currentFontWidth, ymax:cursorY+currentFontHeight)
     }
 
-    public func nextFontRow(x:UInt8, y:UInt8) ->(x:UInt8,y:UInt8){
+    public func nextFontRow(x:Int, y:Int) ->(x:Int,y:Int){
         return (x,y+currentFontHeight)
     }
 
-    public func nextFontColumn(x:UInt8, y:UInt8) ->(x:UInt8,y:UInt8){
+    public func nextFontColumn(x:Int, y:Int) ->(x:Int,y:Int){
         return (x+currentFontWidth,y)
     }
 
     // Add an opaque char to the buffer
-    private func drawChar(charCode:Int, posX:UInt8, posY:UInt8){
-        guard (charCode>64)&&(charCode<128) else {
+    private func drawChar(charCode:UInt32, posX:Int, posY:Int, transparent:Bool){
+        guard (charCode>64)&&(charCode<127) else {
             return //Unprintable character
         }
-        guard (posX+currentFontWidth<LCDWIDHT)&&(poxY+currentFontHeight<LCDHEIGHT)else{
+        guard (posX+currentFontWidth<LCDWIDTH)&&(posY+currentFontHeight<LCDHEIGHT) else {
             return //Character outside of screen borders
         } 
         
         for row in 0...7 {
-		    pcd8544_buffer[posX+ ((posY+row)/8)*LCDWIDTH] = currentFont[(charCode-65)*8+row]
+            if transparent {
+		        pcd8544_buffer[posX + ((posY+row)/8)*LCDWIDTH] |= currentFont[(Int(charCode)-65)*8+row]
+            }else{
+		        pcd8544_buffer[posX + ((posY+row)/8)*LCDWIDTH] = currentFont[(Int(charCode)-65)*8+row]
+            }
         }
     }
     
 
     public func display(){
-        var col,maxcol,p:UInt8
+        var col,maxcol:Int
   
         for p in 0...5 {
             // check if this page is part of update
@@ -168,7 +171,7 @@ class PCD8544{
             dc.value = 1 
             cs.value = 0
             for c in col...maxcol {
-                spi.sendByte(pcd8544_buffer[(LCDWIDTH*p)+col]);
+                spi.sendByte(pcd8544_buffer[(LCDWIDTH*p)+c]);
             }
             cs.value = 1
         }
@@ -184,26 +187,17 @@ class PCD8544{
 
     // clear everything
     public func clearDisplay() {
-        for i in 0..pcd8544_buffer.count {
-            pcd8544_budder[i] = 0
+        for i in 0..<pcd8544_buffer.count {
+            pcd8544_buffer[i] = 0
         }
-        updateBoundingBox(0, 0, LCDWIDTH-1, LCDHEIGHT-1);
+        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1);
     } 
 
-    static private var xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax:UInt8  
-    
-    static private void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
-        //TODO check bounds
-        if (xmin < xUpdateMin) xUpdateMin = xmin;
-        if (xmax > xUpdateMax) xUpdateMax = xmax;
-        if (ymin < yUpdateMin) yUpdateMin = ymin;
-        if (ymax > yUpdateMax) yUpdateMax = ymax;
-    }
- 
-    private func command(commandcode:UInt8){
+
+    private func command(commandcode:Int){
         dc.value = 0
         cs.value = 0
-        spi.sendByte(commandcode)
+        spi.sendByte(UInt8(commandcode))
         cs.value = 1
     }
 
@@ -213,7 +207,16 @@ class PCD8544{
         spi.sendByte(data)
         cs.value = 1
     }
-
+         
+    private var xUpdateMin:Int=0, xUpdateMax:Int=0, yUpdateMin:Int=0, yUpdateMax:Int=0  
+    
+    private func updateBoundingBox(xmin:Int, ymin:Int, xmax:Int, ymax:Int) {
+        //TODO check bounds
+        xUpdateMin = (xmin < xUpdateMin) ? xmin : xUpdateMin
+        xUpdateMax = (xmax > xUpdateMax) ? xmax : xUpdateMax
+        yUpdateMin = (ymin < yUpdateMin) ? ymin : yUpdateMin
+        yUpdateMax = (ymax > yUpdateMax) ? ymax : yUpdateMax
+    }
   
 }
 
@@ -221,7 +224,7 @@ class PCD8544{
 //Create your own at:
 //http://www.rinkydinkelectronics.com/t_imageconverter_mono.php
 //
-let swift_logo:[Int8] = [               
+public let swift_logo:[UInt8] = [               
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // 0x0010 (16) pixels
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // 0x0020 (32) pixels
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x70,   // 0x0030 (48) pixels
@@ -260,7 +263,7 @@ let swift_logo:[Int8] = [
 // Create your own at:
 // http://www.rinkydinkelectronics.com/t_make_font_file_mono.php
 //
-let SinclairS_Font:[UInt8]=[
+public let SinclairS_Font:[UInt8]=[
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,  // <space>
 0x08,0x08,0x08,0x08,0x08,0x00,0x08,0x00,  // !
 0x14,0x14,0x00,0x00,0x00,0x00,0x00,0x00,  // "
@@ -363,39 +366,30 @@ let SinclairS_Font:[UInt8]=[
 0x00,0x14,0x28,0x00,0x00,0x00,0x00,0x00   // ~
 ]
 
-//Internal Constants
-
-let INPUT=0
-let OUTPUT=1
-let HIGH=1
-let LOW=0
-
-enum LCDColor{
+public enum LCDColor:UInt8{
     case BLACK
     case WHITE
 }
+ 
+//Internal Constants
 
-let PCD8544_POWERDOWN=0x04
-let PCD8544_ENTRYMODE=0x02
-let PCD8544_EXTENDEDINSTRUCTION=0x01
+internal let PCD8544_POWERDOWN=0x04
+internal let PCD8544_ENTRYMODE=0x02
+internal let PCD8544_EXTENDEDINSTRUCTION=0x01
 
-let PCD8544_DISPLAYBLANK=0x0
-let PCD8544_DISPLAYNORMAL=0x4
-let PCD8544_DISPLAYALLON=0x1
-let PCD8544_DISPLAYINVERTED=0x5
+internal let PCD8544_DISPLAYBLANK=0x0
+internal let PCD8544_DISPLAYNORMAL=0x4
+internal let PCD8544_DISPLAYALLON=0x1
+internal let PCD8544_DISPLAYINVERTED=0x5
 
 // H = 0
-let PCD8544_FUNCTIONSET=0x20
-let PCD8544_DISPLAYCONTROL=0x08
-let PCD8544_SETYADDR=0x40
-let PCD8544_SETXADDR=0x80
+internal let PCD8544_FUNCTIONSET=0x20
+internal let PCD8544_DISPLAYCONTROL=0x08
+internal let PCD8544_SETYADDR=0x40
+internal let PCD8544_SETXADDR=0x80
 // H = 1
-let PCD8544_SETTEMP=0x04
-let PCD8544_SETBIAS=0x10
-let PCD8544_SETVOP=0x80
-
-// keywords
-let LSBFIRST=0
-let MSBFIRST=1
+internal let PCD8544_SETTEMP=0x04
+internal let PCD8544_SETBIAS=0x10
+internal let PCD8544_SETVOP=0x80
 
 
