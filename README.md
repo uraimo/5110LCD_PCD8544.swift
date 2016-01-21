@@ -1,6 +1,6 @@
 # 5110LCD_PCD8544.swift
 
-**A Swift library for the Nokia3310/5110 PCD8544 Monochrome LCD display **
+**A Swift library for the Nokia3310/5110 PCD8544 Monochrome LCD display**
 
 <p>
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux-only" />
@@ -66,7 +66,7 @@ Next, let's create a virtual SPI to send data to the display:
 
 ```swift
 var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
-yy```
+```
 
 And create the display object we'll use to interact with the LCD:
 
@@ -120,7 +120,7 @@ lcd.display()
 ### Text and Fonts
 
 This library allows to display strings using bitmap fonts. Two fonts are included: Tiny_Font and SinclairS (more font can be found or generated [here](http://www.rinkydinkelectronics.com/resources.php)).
-To display some text, you first need to load a font, that font will be used for all the following text: 
+To display some text, you need to load a font first and that font will be used for all the following strings: 
 
 ```swift
 lcd.loadFontAsDefault(SinclairS_Font,fontWidth:8,fontHeight:8)
