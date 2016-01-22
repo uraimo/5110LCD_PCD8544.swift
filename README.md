@@ -6,7 +6,7 @@
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux-only" />
 <a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/swift2-compatible-4BC51D.svg?style=flat" alt="Swift 2 compatible" /></a>
 <a href="https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/LICENSE"><img src="http://img.shields.io/badge/license-BSD-blue.svg?style=flat" alt="License: BSD" /></a>
-<a href="https://travis-ci.org/uraimo/5110lcd_pcd8544.swift"><img src="https://travis-ci.org/uraimo/5110LCD_PCD8544.swift.svg" alt="Travis CI"></a>
+<a href="https://travis-ci.org/uraimo/5110LCD_PCD8544.swift"><img src="https://travis-ci.org/uraimo/5110LCD_PCD8544.swift.svg" alt="Travis CI"></a>
 </p>
 
 ![LCD with Swift logo](https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/lcd.jpg)
