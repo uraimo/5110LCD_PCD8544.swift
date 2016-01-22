@@ -39,7 +39,7 @@ public class PCD8544{
         command( PCD8544_SETVOP | 0x32) // Experimentally determined, DONT'T change it
 
         // normal mode
-        command(PCD8544_FUNCTIONSET);
+        command(PCD8544_FUNCTIONSET)
 
         // Set display to Normal
         command(PCD8544_DISPLAYCONTROL | PCD8544_DISPLAYNORMAL)
@@ -70,7 +70,7 @@ public class PCD8544{
             return 0
         }
 
-        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(truncatingBitPattern:y)%8)) & 0x1; 
+        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(truncatingBitPattern:y)%8)) & 0x1
     } 
 
     public func drawImage(imageBuffer:[UInt8],x:Int,y:Int,width:Int,height:Int, transparent:Bool=false){
@@ -88,7 +88,7 @@ public class PCD8544{
 
     public func loadFontAsDefault(font:[UInt8], fontWidth:Int, fontHeight:Int){
         guard font.count == 95*fontWidth*fontHeight/8 else {
-            return; //TODO error
+            return //TODO error
         }
         currentFontHeight = fontHeight
         currentFontWidth = fontWidth
@@ -163,34 +163,34 @@ public class PCD8544{
 /*
             // check if this page is part of update
             if ( yUpdateMin >= ((p+1)*8) ) {
-                continue;   // nope, skip it!
+                continue   // nope, skip it!
             }
             if (yUpdateMax < p*8) {
-                break;
+                break
             }
 */
-            command(PCD8544_SETYADDR | UInt8(truncatingBitPattern:p));
+            command(PCD8544_SETYADDR | UInt8(truncatingBitPattern:p))
 
 /*        
-            col = xUpdateMin;
-            maxcol = xUpdateMax;
+            col = xUpdateMin
+            maxcol = xUpdateMax
 */
             col = 0
             maxcol = LCDWIDTH-1
 
-            command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col));
+            command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col))
 
             for c in col...maxcol {
-                data(pcd8544_buffer[(LCDWIDTH*p)+c]);
+                data(pcd8544_buffer[(LCDWIDTH*p)+c])
             }
         }                           
        
-        command(PCD8544_SETYADDR );  // no idea why this is necessary but it is to finish the last byte?
+        command(PCD8544_SETYADDR )  // no idea why this is necessary but it is to finish the last byte?
 
-        xUpdateMin = LCDWIDTH - 1;
-        xUpdateMax = 0;
-        yUpdateMin = LCDHEIGHT-1;
-        yUpdateMax = 0;
+        xUpdateMin = LCDWIDTH - 1
+        xUpdateMax = 0
+        yUpdateMin = LCDHEIGHT-1
+        yUpdateMax = 0
     } 
  
 
@@ -199,7 +199,7 @@ public class PCD8544{
         for i in 0..<pcd8544_buffer.count {
             pcd8544_buffer[i] = 0
         }
-        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1);
+        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
         display()
     } 
 
