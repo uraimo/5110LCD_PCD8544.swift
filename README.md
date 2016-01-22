@@ -79,7 +79,7 @@ var lcd = PCD8544(spi:spi,dc:dc,rst:rst,cs:sce)
 
 That's it, you are all set, let's see what we can do on the display: 
 
-### Setting individual pixels
+#### Setting individual pixels
 
 ```swift
 lcd.setPixel(20,y:20,color:.BLACK)
@@ -91,7 +91,7 @@ The `setPixel` function draw a single pixel at the given coordinates. `.WHITE` r
 To update the display, always call `.display()` once you are done. 
 
 
-### Clearing the display
+#### Clearing the display
 
 ```swift
 lcd.clearDisplay()
@@ -99,7 +99,7 @@ lcd.clearDisplay()
 To clean the display just call `.clearDisplay()`.
 
 
-### Drawing an image
+#### Drawing an image
 
 To draw an image, using a bitmap buffer (create more monochrome bitmap images [here](http://www.rinkydinkelectronics.com/t_imageconverter_mono.php)):
 
@@ -121,7 +121,7 @@ lcd.drawImage(swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT,transparent:tru
 lcd.display()
 ```
 
-### Text and Fonts
+#### Text and Fonts
 
 This library allows to display strings using bitmap fonts. Two fonts are included: Tiny_Font and SinclairS (more font can be found or generated [here](http://www.rinkydinkelectronics.com/resources.php)).
 
