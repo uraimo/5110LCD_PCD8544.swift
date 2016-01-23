@@ -8,6 +8,7 @@
 public let LCDHEIGHT=48
 public let LCDWIDTH=84
 
+/// Class that represents the display being configured
 public class PCD8544{
     var dc,rst,cs:GPIO
     var spi:SPIOutput
@@ -49,7 +50,7 @@ public class PCD8544{
         display() //Cleanup
     }
     
-    // the most basic function, set a single pixel
+    /// Set a single pixel to the internal graphic buffer, call `.display()` to update the screen
     public func setPixel(x:Int, y:Int, color:LCDColor) {
         guard ((x>0) && (x < LCDWIDTH) && (y>0) && (y < LCDHEIGHT)) else {
             return
@@ -64,7 +65,7 @@ public class PCD8544{
         updateBoundingBox(x,ymin:y,xmax:x,ymax:y)
     }
 
-    // the most basic function, get a single pixel
+    /// Get a single pixel from the internal graphic buffer
     public func getPixel(x:Int, y:Int)->UInt8 {
         guard ((x>0) && (x < LCDWIDTH) && (y>0) && (y < LCDHEIGHT)) else {
             return 0
@@ -73,6 +74,7 @@ public class PCD8544{
         return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(truncatingBitPattern:y)%8)) & 0x1
     } 
 
+    /// Draw a monochrome bitmap image to the internal graphic buffer, call `.display()` to update the screen
     public func drawImage(imageBuffer:[UInt8],x:Int,y:Int,width:Int,height:Int, transparent:Bool=false){
 
         for i in 0..<imageBuffer.count {
@@ -86,6 +88,7 @@ public class PCD8544{
         updateBoundingBox(x, ymin:y, xmax:x+width, ymax:y+height)
     }          
 
+    /// Load a bitmap font as default
     public func loadFontAsDefault(font:[UInt8], fontWidth:Int, fontHeight:Int){
         guard font.count == 95*fontWidth*fontHeight/8 else {
             return //TODO error
@@ -95,6 +98,7 @@ public class PCD8544{
         currentFont = font
     }
 
+    /// Draw a string using the default font to the internal graphic buffer, call `.display()` to update the screen
     public func drawString(text:String, x:Int, y:Int, transparent:Bool=false){
         var cursorX=x
         var cursorY=y
@@ -110,15 +114,87 @@ public class PCD8544{
         updateBoundingBox(x, ymin:y, xmax:cursorX, ymax:cursorY+currentFontHeight)
     }
 
+    /// Get the next row position for a string using the default font and the given starting coordinates
     public func nextFontRow(x:Int, y:Int) ->(x:Int,y:Int){
         return (x,y+currentFontHeight)
     }
 
+    /// Get the next column position for a string using the default font and the given starting coordinates
     public func nextFontColumn(x:Int, y:Int) ->(x:Int,y:Int){
         return (x+currentFontWidth,y)
     }
 
-    // Add an opaque char to the buffer
+    ///	Updates the display with the latest modification from the internal buffer
+    public func display(){
+        var col,maxcol:Int
+  
+        for p in 0...5 {            
+        // TODO: Commented for now, it doesn't seem to work.
+        /*
+        //To reduce how much is refreshed, do a partial udpate, algorithm derived from 
+        //Steve Evans/JCW's mod but cleaned up and optimized
+
+            // check if this page is part of update
+            if ( yUpdateMin >= ((p+1)*8) ) {
+                continue   // nope, skip it!
+            }
+            if (yUpdateMax < p*8) {
+                break
+            }
+        */
+            command(PCD8544_SETYADDR | UInt8(truncatingBitPattern:p))
+
+        /*        
+            col = xUpdateMin
+            maxcol = xUpdateMax
+        */
+            col = 0
+            maxcol = LCDWIDTH-1
+
+            command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col))
+
+            for c in col...maxcol {
+                data(pcd8544_buffer[(LCDWIDTH*p)+c])
+            }
+        }                           
+       
+        command(PCD8544_SETYADDR )  // no idea why this is necessary but it is to finish the last byte?
+
+        xUpdateMin = LCDWIDTH - 1
+        xUpdateMax = 0
+        yUpdateMin = LCDHEIGHT-1
+        yUpdateMax = 0
+    } 
+ 
+
+    /// Clear the display
+    public func clearDisplay() {
+        for i in 0..<pcd8544_buffer.count {
+            pcd8544_buffer[i] = 0
+        }
+        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
+        display()
+    } 
+
+// MARK: Private functions
+
+    /// Execute a command (dc=0)
+    private func command(commandcode:UInt8){
+        dc.value = 0
+        //cs.value = 0
+        spi.sendByte(commandcode)
+        //cs.value = 1
+    }
+
+    /// Send some data (dc=1)
+    private func data(data:UInt8){
+        dc.value = 1
+        //cs.value = 0
+        spi.sendByte(data)
+        //cs.value = 1
+    }
+    
+    /// Add a char to the internal buffer
     private func drawChar(charCode:UInt32, posX:Int, posY:Int, transparent:Bool){
         guard (charCode>31)&&(charCode<127) else {
             return //Unprintable character
@@ -142,7 +218,7 @@ public class PCD8544{
         }
     }
     
-
+    /// Transpose an array containing a matrix of pixels
     private func transpose(matrix:ArraySlice<UInt8>,width:Int,height:Int)->[UInt8]{
         var res = [UInt8](count:matrix.count,repeatedValue:0)
         var row = 0
@@ -154,72 +230,10 @@ public class PCD8544{
         }
         return res
     }
-
-
-    public func display(){
-        var col,maxcol:Int
-  
-        for p in 0...5 {            
-/*
-            // check if this page is part of update
-            if ( yUpdateMin >= ((p+1)*8) ) {
-                continue   // nope, skip it!
-            }
-            if (yUpdateMax < p*8) {
-                break
-            }
-*/
-            command(PCD8544_SETYADDR | UInt8(truncatingBitPattern:p))
-
-/*        
-            col = xUpdateMin
-            maxcol = xUpdateMax
-*/
-            col = 0
-            maxcol = LCDWIDTH-1
-
-            command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col))
-
-            for c in col...maxcol {
-                data(pcd8544_buffer[(LCDWIDTH*p)+c])
-            }
-        }                           
-       
-        command(PCD8544_SETYADDR )  // no idea why this is necessary but it is to finish the last byte?
-
-        xUpdateMin = LCDWIDTH - 1
-        xUpdateMax = 0
-        yUpdateMin = LCDHEIGHT-1
-        yUpdateMax = 0
-    } 
- 
-
-    // clear everything
-    public func clearDisplay() {
-        for i in 0..<pcd8544_buffer.count {
-            pcd8544_buffer[i] = 0
-        }
-        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
-        display()
-    } 
-
-
-    private func command(commandcode:UInt8){
-        dc.value = 0
-        //cs.value = 0
-        spi.sendByte(commandcode)
-        //cs.value = 1
-    }
-
-    private func data(data:UInt8){
-        dc.value = 1
-        //cs.value = 0
-        spi.sendByte(data)
-        //cs.value = 1
-    }
          
     private var xUpdateMin:Int=0, xUpdateMax:Int=0, yUpdateMin:Int=0, yUpdateMax:Int=0  
     
+    /// Update coordinates of the modified area
     private func updateBoundingBox(xmin:Int, ymin:Int, xmax:Int, ymax:Int) {
         xUpdateMin = (xmin>0)&&(xmin<LCDWIDTH)&&(xmin < xUpdateMin) ? xmin : xUpdateMin
         xUpdateMax = (xmax>0)&&(xmin<LCDWIDTH)&&(xmax > xUpdateMax) ? xmax : xUpdateMax
@@ -229,7 +243,7 @@ public class PCD8544{
   
 }
 
-
+/// Pixel color, .BLACK is opaque, .WHITE is transparent
 public enum LCDColor:UInt8{
     case WHITE = 0
     case BLACK = 1
