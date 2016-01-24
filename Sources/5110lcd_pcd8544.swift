@@ -101,8 +101,10 @@ public class PCD8544{
     /// Draw a string using the default font to the internal graphic buffer, call `.display()` to update the screen
     public func drawString(text:String, x:Int, y:Int, transparent:Bool=false){
         var cursorX=x
+        var cursorXMax=x
         var cursorY=y
         for scalar in text.unicodeScalars {
+            cursorXMax = (cursorX>cursorXMax) ? cursorX : cursorXMax
             if scalar.value == 10 {
                 cursorY += currentFontHeight // \n character
                 cursorX = x 
@@ -111,7 +113,7 @@ public class PCD8544{
             drawChar(scalar.value, posX:cursorX, posY:cursorY, transparent:transparent)
             cursorX += currentFontWidth
         }        
-        updateBoundingBox(x, ymin:y, xmax:cursorX, ymax:cursorY+currentFontHeight)
+        updateBoundingBox(x, ymin:y, xmax:cursorXMax, ymax:cursorY+currentFontHeight)
     }
 
     /// Get the next row position for a string using the default font and the given starting coordinates
@@ -129,10 +131,8 @@ public class PCD8544{
         var col,maxcol:Int
   
         for p in 0...5 {            
-        // TODO: Commented for now, it doesn't seem to work.
-        /*
-        //To reduce how much is refreshed, do a partial udpate, algorithm derived from 
-        //Steve Evans/JCW's mod but cleaned up and optimized
+           //To reduce how much is refreshed, do a partial udpate, algorithm derived from 
+           //Steve Evans/JCW's mod but cleaned up and optimized
 
             // check if this page is part of update
             if ( yUpdateMin >= ((p+1)*8) ) {
@@ -141,15 +141,11 @@ public class PCD8544{
             if (yUpdateMax < p*8) {
                 break
             }
-        */
+
             command(PCD8544_SETYADDR | UInt8(truncatingBitPattern:p))
 
-        /*        
             col = xUpdateMin
             maxcol = xUpdateMax
-        */
-            col = 0
-            maxcol = LCDWIDTH-1
 
             command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col))
 
@@ -235,10 +231,12 @@ public class PCD8544{
     
     /// Update coordinates of the modified area
     private func updateBoundingBox(xmin:Int, ymin:Int, xmax:Int, ymax:Int) {
-        xUpdateMin = (xmin>0)&&(xmin<LCDWIDTH)&&(xmin < xUpdateMin) ? xmin : xUpdateMin
-        xUpdateMax = (xmax>0)&&(xmin<LCDWIDTH)&&(xmax > xUpdateMax) ? xmax : xUpdateMax
-        yUpdateMin = (ymin>0)&&(xmin<LCDHEIGHT)&&(ymin < yUpdateMin) ? ymin : yUpdateMin
-        yUpdateMax = (ymax>0)&&(xmin<LCDHEIGHT)&&(ymax > yUpdateMax) ? ymax : yUpdateMax
+        xUpdateMin = (xmin>=0)&&(xmin<LCDWIDTH)&&(xmin < xUpdateMin) ? xmin : xUpdateMin
+        xUpdateMax = (xmax>=0)&&(xmax<LCDWIDTH)&&(xmax > xUpdateMax) ? xmax : xUpdateMax
+        xUpdateMax = (xmax>=LCDWIDTH) ? LCDWIDTH-1 : xUpdateMax
+        yUpdateMin = (ymin>=0)&&(ymin<LCDHEIGHT)&&(ymin < yUpdateMin) ? ymin : yUpdateMin
+        yUpdateMax = (ymax>=0)&&(ymax<LCDHEIGHT)&&(ymax > yUpdateMax) ? ymax : yUpdateMax
+        yUpdateMax = (ymax>=LCDHEIGHT) ? LCDHEIGHT-1 : yUpdateMax
     }
   
 }
