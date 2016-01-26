@@ -149,9 +149,7 @@ public class PCD8544{
 
             command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col))
 
-            for c in col...maxcol {
-                data(pcd8544_buffer[(LCDWIDTH*p)+c])
-            }
+            dataStream(Array(pcd8544_buffer[(LCDWIDTH*p)+col...(LCDWIDTH*p)+maxcol]))
         }                           
        
         command(PCD8544_SETYADDR )  // no idea why this is necessary but it is to finish the last byte?
@@ -185,7 +183,13 @@ public class PCD8544{
         dc.value = 1
         spi.sendByte(data)
     }
-    
+
+    /// Send some data stream(dc=1)
+    private func dataStream(data:[UInt8]){
+        dc.value = 1
+        spi.sendStream(data)
+    }
+
     /// Add a char to the internal buffer
     private func drawChar(charCode:UInt32, posX:Int, posY:Int, transparent:Bool){
         guard (charCode>31)&&(charCode<127) else {
