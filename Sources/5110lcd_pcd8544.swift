@@ -177,17 +177,13 @@ public class PCD8544{
     /// Execute a command (dc=0)
     private func command(commandcode:UInt8){
         dc.value = 0
-        //cs.value = 0
         spi.sendByte(commandcode)
-        //cs.value = 1
     }
 
     /// Send some data (dc=1)
     private func data(data:UInt8){
         dc.value = 1
-        //cs.value = 0
         spi.sendByte(data)
-        //cs.value = 1
     }
     
     /// Add a char to the internal buffer
