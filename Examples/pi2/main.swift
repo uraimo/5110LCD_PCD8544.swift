@@ -12,15 +12,19 @@
 // VCC,SCLK,DN/MOSI,D/C,GND,SCE,RST (LED to VCC if you want)
 //
 let gpios = SwiftyGPIO.getGPIOsForBoard(.RaspberryPiPlus2Zero)
-var sclk = gpios[.P2]!
-var dnmosi = gpios[.P3]!
 var dc = gpios[.P4]!
 var sce = gpios[.P17]!
 var rst = gpios[.P27]!
 
-var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
+let spis = SwiftyGPIO.getHardwareSPIsForBoard(.RaspberryPiPlus2Zero)
+var spi = spis?[0]
 
-var lcd = PCD8544(spi:spi,dc:dc,rst:rst,cs:sce)
+// Alternative: using a virtual spi
+//var sclk = gpios[.P2]!
+//var dnmosi = gpios[.P3]!
+//var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
+
+var lcd = PCD8544(spi:spi!,dc:dc,rst:rst,cs:sce)
 
 lcd.setPixel(20,y:20,color:.BLACK)
 lcd.setPixel(30,y:30,color:.BLACK)
