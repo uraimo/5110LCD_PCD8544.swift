@@ -1,5 +1,5 @@
 #if arch(arm) && os(Linux)
-    //import SwiftyGPIO  //Uncomment this when using the package manager
+    import SwiftyGPIO  //Comment this when not using the package manager
     import Glibc
 #else
     import Darwin //Needed for TravisCI
@@ -12,7 +12,7 @@ public let LCDWIDTH=84
 public class PCD8544{
     var dc,rst,cs:GPIO
     var spi:SPIOutput
-    var pcd8544_buffer=[UInt8](count:LCDHEIGHT*LCDWIDTH/8, repeatedValue:0x0)
+    var pcd8544_buffer=[UInt8](repeating:0x0,count:LCDHEIGHT*LCDWIDTH/8)
     var currentFont=[UInt8]()
     var currentFontWidth=0,currentFontHeight=0
  
@@ -46,7 +46,7 @@ public class PCD8544{
         command(PCD8544_DISPLAYCONTROL | PCD8544_DISPLAYNORMAL)
 
         // set up a bounding box for screen updates
-        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
+        updateBoundingBox(xmin:0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
         display() //Cleanup
     }
     
@@ -62,7 +62,7 @@ public class PCD8544{
 	    }else{                        
 		    pcd8544_buffer[x + (y/8)*LCDWIDTH] &= UInt8(truncatingBitPattern:~(0x1 << (y%8)))
         }
-        updateBoundingBox(x,ymin:y,xmax:x,ymax:y)
+        updateBoundingBox(xmin:x,ymin:y,xmax:x,ymax:y)
     }
 
     /// Get a single pixel from the internal graphic buffer
@@ -75,17 +75,17 @@ public class PCD8544{
     } 
 
     /// Draw a monochrome bitmap image to the internal graphic buffer, call `.display()` to update the screen
-    public func drawImage(imageBuffer:[UInt8],x:Int,y:Int,width:Int,height:Int, transparent:Bool=false){
+    public func draw(image:[UInt8],x:Int,y:Int,width:Int,height:Int, transparent:Bool=false){
 
-        for i in 0..<imageBuffer.count {
+        for i in 0..<image.count {
             if transparent {
-		        pcd8544_buffer[x + (y/8)*LCDWIDTH+i] |= imageBuffer[i]
+		        pcd8544_buffer[x + (y/8)*LCDWIDTH+i] |= image[i]
             }else{
-		        pcd8544_buffer[x + (y/8)*LCDWIDTH+i] = imageBuffer[i]
+		        pcd8544_buffer[x + (y/8)*LCDWIDTH+i] = image[i]
             }
  
         }
-        updateBoundingBox(x, ymin:y, xmax:x+width, ymax:y+height)
+        updateBoundingBox(xmin:x, ymin:y, xmax:x+width, ymax:y+height)
     }          
 
     /// Load a bitmap font as default
@@ -99,7 +99,7 @@ public class PCD8544{
     }
 
     /// Draw a string using the default font to the internal graphic buffer, call `.display()` to update the screen
-    public func drawString(text:String, x:Int, y:Int, transparent:Bool=false){
+    public func draw(text:String, x:Int, y:Int, transparent:Bool=false){
         var cursorX=x
         var cursorXMax=x
         var cursorY=y
@@ -110,10 +110,10 @@ public class PCD8544{
                 cursorX = x 
                 continue
             }
-            drawChar(scalar.value, posX:cursorX, posY:cursorY, transparent:transparent)
+            drawChar(charCode:scalar.value, posX:cursorX, posY:cursorY, transparent:transparent)
             cursorX += currentFontWidth
         }        
-        updateBoundingBox(x, ymin:y, xmax:cursorXMax, ymax:cursorY+currentFontHeight)
+        updateBoundingBox(xmin:x, ymin:y, xmax:cursorXMax, ymax:cursorY+currentFontHeight)
     }
 
     /// Get the next row position for a string using the default font and the given starting coordinates
@@ -166,26 +166,26 @@ public class PCD8544{
         for i in 0..<pcd8544_buffer.count {
             pcd8544_buffer[i] = 0
         }
-        updateBoundingBox(0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
+        updateBoundingBox(xmin:0, ymin:0, xmax:LCDWIDTH-1, ymax:LCDHEIGHT-1)
         display()
     } 
 
 // MARK: Private functions
 
     /// Execute a command (dc=0)
-    private func command(commandcode:UInt8){
+    private func command(_ commandcode:UInt8){
         dc.value = 0
         spi.sendData([commandcode])
     }
 
     /// Send some data (dc=1)
-    private func data(data:UInt8){
+    private func data(_ data:UInt8){
         dc.value = 1
         spi.sendData([data])
     }
 
     /// Send some data stream(dc=1)
-    private func dataStream(data:[UInt8]){
+    private func dataStream(_ data:[UInt8]){
         dc.value = 1
         spi.sendData(data)
     }
@@ -203,7 +203,7 @@ public class PCD8544{
         //transpose to save column by column
         let charRef = (Int(charCode)-32)*currentFontWidth
         let charSprite = currentFont[charRef..<charRef+currentFontWidth]
-        let tCharSprite = transpose(charSprite,width:currentFontWidth,height:currentFontHeight)
+        let tCharSprite = transpose(matrix: charSprite,width:currentFontWidth,height:currentFontHeight)
 
         for col in 0..<currentFontWidth {
             if transparent {
@@ -216,7 +216,7 @@ public class PCD8544{
     
     /// Transpose an array containing a matrix of pixels
     private func transpose(matrix:ArraySlice<UInt8>,width:Int,height:Int)->[UInt8]{
-        var res = [UInt8](count:matrix.count,repeatedValue:0)
+        var res = [UInt8](repeating:0,count:matrix.count)
         var row = 0
         for el in matrix {
             for i in 0..<width {
