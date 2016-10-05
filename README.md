@@ -25,7 +25,7 @@ Every board supported by [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO): Ras
 
 To use this library, you'll need a Linux ARM board with Swift 3.x, the old Swift 2.x version of this library is available [on a specific branch](https://github.com/uraimo/5110LCD_PCD8544.swift/tree/swift2).
 
-The example below will use a CHIP board but you can easily modify the example to use one the the other supported boards, full working demo projects for both the Chip and RaspberryPi2 are available in the `Examples` directory.
+The example below will use a CHIP board but you can easily modify the example to use one the the other supported boards, full working demo projects for both the Chip and RaspberryPi2 (using the faster hardware SPI) are available in the `Examples` directory.
 
 ## Installation
 
@@ -97,9 +97,9 @@ That's it, you are all set, let's see what we can do on the display:
 #### Setting individual pixels
 
 ```swift
-lcd.setPixel(20,y:20,color:.BLACK)
-lcd.setPixel(30,y:30,color:.BLACK)
-lcd.setPixel(10,y:10,color:.WHITE)
+lcd.setPixel(x:20,y:20,color:.BLACK)
+lcd.setPixel(x:30,y:30,color:.BLACK)
+lcd.setPixel(x:10,y:10,color:.WHITE)
 lcd.display()
 ```
 The `setPixel` function draw a single pixel at the given coordinates. `.WHITE` represents the transparent background, `.BLACK` and opaque pixel.
@@ -119,7 +119,7 @@ To clean the display just call `.clearDisplay()`.
 To draw an image, using a bitmap buffer (create more monochrome bitmap images [here](http://www.rinkydinkelectronics.com/t_imageconverter_mono.php)):
 
 ```swift
-lcd.drawImage(swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
+lcd.draw(image:swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
 lcd.display()
 ```
 
@@ -130,9 +130,9 @@ If no additional parameters are specified images are opaque, i.e. white pixels w
 Here we are displaying the Swift logo in front of a series of horizontal lines:
  
 ```swift
-let alllines=[UInt8](count:LCDHEIGHT*LCDWIDTH/8, repeatedValue:0xAA)
-lcd.drawImage(alllines,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
-lcd.drawImage(swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT,transparent:true)
+let alllines=[UInt8](repeating: 0xAA, count:LCDHEIGHT*LCDWIDTH/8)
+lcd.draw(image:alllines,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
+lcd.draw(image:swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT,transparent:true)
 lcd.display()
 ```
 
@@ -143,17 +143,21 @@ This library allows to display strings using bitmap fonts. Two fonts are include
 To display some text, you need to load a font first and that font will be used for all the following strings: 
 
 ```swift
-lcd.loadFontAsDefault(SinclairS_Font,fontWidth:8,fontHeight:8)
+lcd.loadFontAsDefault(font:SinclairS_Font,fontWidth:8,fontHeight:8)
 ```
 
-To draw a string simply call `drawString` with a position:
+To draw a string simply call `draw` with some text and a position:
 
 ```swift
-lcd.drawString("HelloWorld",x:0,y:0)
+lcd.draw(text:"HelloWorld",x:0,y:0)
 lcd.display()
 ```
 
 That covers what the library can do.
+
+## Enabling the hardware SPI
+
+To enable the SPI on the RasperryPi check out the [SwiftyGPIO Wiki](https://github.com/uraimo/SwiftyGPIO/wiki/Enabling-SPI-on-RaspberryPi).
 
 ## Examples
 

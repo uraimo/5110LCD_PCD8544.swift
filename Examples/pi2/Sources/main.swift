@@ -1,6 +1,6 @@
 #if arch(arm) && os(Linux)
-    //import 5110lcd_pcd8544 //Uncomment this when using the package manager
-    //import SwiftyGPIO  //Uncomment this when using the package manager
+    import SwiftyGPIO  // Comment this when not using the package manager
+    import PCD8544 // Comment this when not using the package manager
     import Glibc
 #endif
  
@@ -11,13 +11,14 @@
 //Connect them with the display pins:
 // VCC,SCLK,DN/MOSI,D/C,GND,SCE,RST (LED to VCC if you want)
 //
-let gpios = SwiftyGPIO.getGPIOsForBoard(.RaspberryPiPlus2Zero)
+let gpios = SwiftyGPIO.GPIOs(for: .RaspberryPi2)
 var dc = gpios[.P4]!
 var sce = gpios[.P17]!
 var rst = gpios[.P27]!
 
-let spis = SwiftyGPIO.getHardwareSPIsForBoard(.RaspberryPiPlus2Zero)
-var spi = spis?[0]
+//The hardware SPI has MOSI in .P10 and SCLK in .P11
+let spis = SwiftyGPIO.hardwareSPIs(for: .RaspberryPi2)
+var spi = spis?[0] 
 
 // Alternative: using a virtual spi
 //var sclk = gpios[.P2]!
@@ -26,30 +27,30 @@ var spi = spis?[0]
 
 var lcd = PCD8544(spi:spi!,dc:dc,rst:rst,cs:sce)
 
-lcd.setPixel(20,y:20,color:.BLACK)
-lcd.setPixel(30,y:30,color:.BLACK)
-lcd.setPixel(10,y:10,color:.WHITE)
+lcd.setPixel(x:20,y:20,color:.BLACK)
+lcd.setPixel(x:30,y:30,color:.BLACK)
+lcd.setPixel(x:10,y:10,color:.WHITE)
 lcd.display()
 usleep(2000*1000)
 lcd.clearDisplay()
 
 
-lcd.drawImage(swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
+lcd.draw(image:swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
 lcd.display()
 usleep(2000*1000)
 lcd.clearDisplay()
 
                 
-let alllines=[UInt8](count:LCDHEIGHT*LCDWIDTH/8, repeatedValue:0xAA)
-lcd.drawImage(alllines,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
-lcd.drawImage(swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT,transparent:true)
+let alllines=[UInt8](repeating: 0xAA,count:LCDHEIGHT*LCDWIDTH/8)
+lcd.draw(image:alllines,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT)
+lcd.draw(image:swift_logo,x:0,y:0,width:LCDWIDTH,height:LCDHEIGHT,transparent:true)
 lcd.display()
 usleep(2000*1000)
 lcd.clearDisplay()
 
-lcd.loadFontAsDefault(SinclairS_Font,fontWidth:8,fontHeight:8) // Less fancy Tiny_Font also available
+lcd.loadFontAsDefault(font: SinclairS_Font,fontWidth:8,fontHeight:8) // Less fancy Tiny_Font also available
 
-lcd.drawString("HelloWorld",x:0,y:0)
+lcd.draw(text:"HelloWorld",x:0,y:0)
 lcd.display()
 usleep(2000*1000)
 lcd.clearDisplay()
@@ -57,11 +58,11 @@ lcd.clearDisplay()
 
 let ch1 = " !\"#$%&'()\n*+,-./0123\n456789:;<=\n>?@ABCDEFG\nHIJKLMNOPQ\nRSTUVWXYZ\n"
 let ch2 = "[\\]^_`abcd\nefghijklmn\nopqrstuvwx\nyz{|}~"
-lcd.drawString(ch1,x:0,y:0)
+lcd.draw(text:ch1,x:0,y:0)
 lcd.display()
 usleep(2000*1000)
 lcd.clearDisplay()
-lcd.drawString(ch2,x:0,y:0)
+lcd.draw(text:ch2,x:0,y:0)
 lcd.display()
 
 
