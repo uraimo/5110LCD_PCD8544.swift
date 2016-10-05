@@ -35,7 +35,7 @@ Please refer to the [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO) readme fo
 
 Once your board runs Swift, considering that at the moment the package manager is not available on ARM, you'll need to manually download the library and its dependencies: 
 
-    wget https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift     
+    wget https://raw.githubusercontent.com/uraimo/SwiftyGPIO/swift-2.2/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/swift2/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/swift2/Sources/font.swift     
 
 Once downloaded, in the same directory create an additional file that will contain the code of your application (e.g. main.swift). 
 
