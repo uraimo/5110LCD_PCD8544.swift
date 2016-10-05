@@ -17,7 +17,7 @@ public class PCD8544{
     var currentFontWidth=0,currentFontHeight=0
  
 
-    init(spi:SPIOutput,dc:GPIO,rst:GPIO,cs:GPIO){
+    public init(spi:SPIOutput,dc:GPIO,rst:GPIO,cs:GPIO){
         self.spi=spi
         self.dc=dc
         self.rst=rst
