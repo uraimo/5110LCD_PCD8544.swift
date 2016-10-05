@@ -6,7 +6,7 @@
  
 
 
-let gpios = SwiftyGPIO.getGPIOsForBoard(.CHIP)
+let gpios = SwiftyGPIO.GPIOs(for: .CHIP)
 var sclk = gpios[.P0]!
 var dnmosi = gpios[.P1]!
 var dc = gpios[.P2]!

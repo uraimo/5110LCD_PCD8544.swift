@@ -5,6 +5,6 @@ let package = Package(
     targets: [],
     dependencies: [
         .Package(url: "https://github.com/uraimo/SwiftyGPIO.git",
-                 majorVersion: 1)
+                 majorVersion: 0)
     ]
 )

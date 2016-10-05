@@ -4,9 +4,8 @@
 
 <p>
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux-only" />
-<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/swift2-compatible-4BC51D.svg?style=flat" alt="Swift 2 compatible" /></a>
+<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/swift3-compatible-4BC51D.svg?style=flat" alt="Swift 3 compatible" /></a>
 <a href="https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/LICENSE"><img src="http://img.shields.io/badge/license-BSD-blue.svg?style=flat" alt="License: BSD" /></a>
-<a href="https://travis-ci.org/uraimo/5110LCD_PCD8544.swift"><img src="https://travis-ci.org/uraimo/5110LCD_PCD8544.swift.svg" alt="Travis CI"></a>
 </p>
 
 ![LCD with Swift logo](https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/lcd.jpg)
@@ -17,38 +16,51 @@
 This library is an extended Swift port of the original PCD8544 C++ library from Limor Fried/Ladyada(Adafruit Industries).
 With this library you will be able to draw single pixels, display text(multiple fonts), monochrome images and transparent sprites on the Nokia 3110/5110 84x48 Monochrome LCD display.  
 
-The library need 5 GPIOs output to drive the display, two of those will act as software SPI (you don't need a hardware SPI to use this library).
+The library need 5 GPIOs output to drive the display, two of those will act as software SPI (you don't need a hardware SPI to use this library, but if SwiftyGPIO support it for your board you can use it).
 
-Use it in your projects and let us know how it goes!
 
 ## Supported Boards
 
 Every board supported by [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO): Raspberries, BeagleBones, C.H.I.P., etc...
 
-The example below will use a CHIP board but you can easily modify the example to use one the the other supported boards.
+To use this library, you'll need a Linux ARM board with Swift 3.x, the old Swift 2.x version of this library is available [on a specific branch](https://github.com/uraimo/5110LCD_PCD8544.swift/tree/swift2).
+
+The example below will use a CHIP board but you can easily modify the example to use one the the other supported boards, full working demo projects for both the Chip and RaspberryPi2 are available in the `Examples` directory.
 
 ## Installation
 
-To use this library, you'll need a Linux ARM board with Swift 2.2.
-
 Please refer to the [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO) readme for Swift installation instructions.
 
-Once your board runs Swift, considering that at the moment the package manager is not available on ARM, you'll need to manually download the library and its dependencies: 
+Once your board runs Swift, if your version support the Swift Package Manager, you can simply add this library as a dependency of your project and compile with `swift build`:
 
-    wget https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift     
+	let package = Package(
+	    name: "MyProject",
+	    dependencies: [
+		.Package(url: "https://github.com/uraimo/5110LCD_PCD8544.swift.git", majorVersion: 2),
+		...
+	    ]
+	    ...
+	) 
 
-Once downloaded, in the same directory create an additional file that will contain the code of your application (e.g. main.swift). 
+The directory `Examples` contains sample projects that uses SPM, compile it and run the sample with `sudo ./.build/debug/Test5110`.
 
-When your code is ready, compile it with:
+If SPM is not supported, you'll need to manually download the library and its dependencies: 
 
-    swiftc SwiftyGPIO.swift 5110lcd_pcd8544.swift font.swift main.swift
+    wget https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/Thread.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/POSIXError.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SunXi.swift
+     
+And once all the files have been downloaded, create an additional file that will contain the code of your application (e.g. main.swift). When your code is ready, compile it with:
+
+    swiftc *.swift
 
 The compiler will create a **main** executable.
-As everything interacting with GPIOs via sysfs, if you are not already root, you will need to run that binary with `sudo ./main`.
+
+As everything interacting with GPIOs, if you are not already root, you will need to run that binary with `sudo ./main`.
+
+
 
 ## Usage
 
-This example uses a C.H.I.P. board and its first 5 GPIOs connected as shown below, but you can easily change the board selected with `getGPIOsForBoard` (e.g. `.RaspberryPiPlus2Zero`) and select a differen set of GPIOs. 
+This example uses a C.H.I.P. board and its first 5 GPIOs connected as shown below, but you can easily change the board selected with `GPIOs(for:)` (e.g. `.RaspberryPi2`) and select a different set of GPIOs. 
 
 ![LCD diagram](https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/lcddiagram.png)
 
@@ -57,7 +69,10 @@ This example uses a C.H.I.P. board and its first 5 GPIOs connected as shown belo
 So, the first thing we need to do is configure the 5 GPIOs using SwiftyGPIO:
 
 ```swift
-let gpios = SwiftyGPIO.getGPIOsForBoard(.CHIP)
+import SwiftyGPIO
+import PCD8544
+
+let gpios = SwiftyGPIO.GPIOs(for: .CHIP)
 var sclk = gpios[.P0]!
 var dnmosi = gpios[.P1]!
 var dc = gpios[.P2]!
