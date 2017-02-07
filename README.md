@@ -86,7 +86,15 @@ Next, let's create a virtual SPI to send data to the display:
 var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
 ```
 
-And create the display object we'll use to interact with the LCD:
+Note that if your board has an hardware SPI and SwiftyGPIO supports it (i.e. every RaspberryPi board), you can create an instance of the hardware SPI object (at least one order of magnitude faster):
+
+```swift
+//The hardware SPI has MOSI in .P10 and SCLK in .P11
+let spis = SwiftyGPIO.hardwareSPIs(for: .RaspberryPi2)
+var spi = spis?[0]!
+```
+
+Then, create the display object we'll use to interact with the LCD:
 
 ```swift
 var lcd = PCD8544(spi:spi,dc:dc,rst:rst,cs:sce)
