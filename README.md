@@ -46,7 +46,7 @@ The directory `Examples` contains sample projects that uses SPM, compile it and 
 
 If SPM is not supported, you'll need to manually download the library and its dependencies: 
 
-    wget https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/Thread.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/POSIXError.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SunXi.swift
+    wget https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/Presets.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SunXi.swift
      
 And once all the files have been downloaded, create an additional file that will contain the code of your application (e.g. main.swift). When your code is ready, compile it with:
 
