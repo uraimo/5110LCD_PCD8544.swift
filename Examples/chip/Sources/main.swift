@@ -4,16 +4,17 @@
     import Glibc
 #endif
  
-
-
 let gpios = SwiftyGPIO.GPIOs(for: .CHIP)
 var sclk = gpios[.P0]!
 var dnmosi = gpios[.P1]!
+var dnmiso = gpios[.P5]!
+var cs = gpios[.P6]!
+
 var dc = gpios[.P2]!
 var sce = gpios[.P3]!
 var rst = gpios[.P4]!
 
-var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
+var spi = VirtualSPI(mosiGPIO: dnmosi, misoGPIO: dnmiso, clockGPIO: sclk, csGPIO: cs)
 
 var lcd = PCD8544(spi:spi,dc:dc,rst:rst,cs:sce)
 

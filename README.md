@@ -27,37 +27,6 @@ To use this library, you'll need a Linux ARM board with Swift 3.x, the old Swift
 
 The example below will use a CHIP board but you can easily modify the example to use one the the other supported boards, full working demo projects for both the Chip and RaspberryPi2 (using the faster hardware SPI) are available in the `Examples` directory.
 
-## Installation
-
-Please refer to the [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO) readme for Swift installation instructions.
-
-Once your board runs Swift, if your version support the Swift Package Manager, you can simply add this library as a dependency of your project and compile with `swift build`:
-
-	let package = Package(
-	    name: "MyProject",
-	    dependencies: [
-		.Package(url: "https://github.com/uraimo/5110LCD_PCD8544.swift.git", majorVersion: 2),
-		...
-	    ]
-	    ...
-	) 
-
-The directory `Examples` contains sample projects that uses SPM, compile it and run the sample with `sudo ./.build/debug/Test5110`.
-
-If SPM is not supported, you'll need to manually download the library and its dependencies: 
-
-    wget https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/Presets.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SunXi.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SPI.swift
-     
-And once all the files have been downloaded, create an additional file that will contain the code of your application (e.g. main.swift). When your code is ready, compile it with:
-
-    swiftc *.swift
-
-The compiler will create a **main** executable.
-
-As everything interacting with GPIOs, if you are not already root, you will need to run that binary with `sudo ./main`.
-
-
-
 ## Usage
 
 This example uses a C.H.I.P. board and its first 5 GPIOs connected as shown below, but you can easily change the board selected with `GPIOs(for:)` (e.g. `.RaspberryPi2`) and select a different set of GPIOs. 
@@ -66,7 +35,7 @@ This example uses a C.H.I.P. board and its first 5 GPIOs connected as shown belo
 
 (It's highly likely that the pinout of your lcd module will be different from what is shown above, check your datasheet)
 
-So, the first thing we need to do is configure the 5 GPIOs using SwiftyGPIO:
+So, the first thing we need to do is configure the 7 GPIOs using SwiftyGPIO:
 
 ```swift
 import SwiftyGPIO
@@ -75,6 +44,9 @@ import PCD8544
 let gpios = SwiftyGPIO.GPIOs(for: .CHIP)
 var sclk = gpios[.P0]!
 var dnmosi = gpios[.P1]!
+var dnmiso = gpios[.P5]!
+var cs = gpios[.P6]!
+
 var dc = gpios[.P2]!
 var sce = gpios[.P3]!
 var rst = gpios[.P4]!
@@ -83,7 +55,7 @@ var rst = gpios[.P4]!
 Next, let's create a virtual SPI to send data to the display:
 
 ```swift
-var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
+var spi = VirtualSPI(mosiGPIO: dnmosi, misoGPIO: dnmiso, clockGPIO: sclk, csGPIO: cs)
 ```
 
 Note that if your board has an hardware SPI and SwiftyGPIO supports it (i.e. every RaspberryPi board), you can create an instance of the hardware SPI object (at least one order of magnitude faster):
@@ -170,4 +142,36 @@ To enable the SPI on the RasperryPi check out the [SwiftyGPIO Wiki](https://gith
 ## Examples
 
 Examples are available in the *Examples* directory.
+ 
+
+## Installation
+
+Please refer to the [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO) readme for Swift installation instructions.
+
+Once your board runs Swift, if your version support the Swift Package Manager, you can simply add this library as a dependency of your project and compile with `swift build`:
+
+	let package = Package(
+	    name: "MyProject",
+	    dependencies: [
+		.Package(url: "https://github.com/uraimo/5110LCD_PCD8544.swift.git", majorVersion: 2),
+		...
+	    ]
+	    ...
+	) 
+
+The directory `Examples` contains sample projects that uses SPM, compile it and run the sample with `sudo ./.build/debug/Test5110`.
+
+If SPM is not supported, you'll need to manually download the library and its dependencies: 
+
+    wget https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/5110lcd_pcd8544.swift https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/Sources/font.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SwiftyGPIO.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/Presets.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SunXi.swift https://raw.githubusercontent.com/uraimo/SwiftyGPIO/master/Sources/SPI.swift
+     
+And once all the files have been downloaded, create an additional file that will contain the code of your application (e.g. main.swift). When your code is ready, compile it with:
+
+    swiftc *.swift
+
+The compiler will create a **main** executable.
+
+As everything interacting with GPIOs, if you are not already root, you will need to run that binary with `sudo ./main`.
+
+
 

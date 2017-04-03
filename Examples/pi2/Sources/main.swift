@@ -22,8 +22,10 @@ var spi = spis?[0]
 
 // Alternative: using a virtual spi
 //var sclk = gpios[.P2]!
-//var dnmosi = gpios[.P3]!
-//var spi = VirtualSPI(dataGPIO:dnmosi,clockGPIO:sclk)
+//var mosi = gpios[.P3]!
+//var cs = gpios[.P22]!
+//var miso = gpios[.P17]!
+//var spi = VirtualSPI(mosiGPIO: mosi, misoGPIO: miso, clockGPIO: clk, csGPIO: cs)
 
 var lcd = PCD8544(spi:spi!,dc:dc,rst:rst,cs:sce)
 
