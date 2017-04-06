@@ -73,13 +73,13 @@ public let LCDWIDTH=84
 /// Class that represents the display being configured
 public class PCD8544{
     var dc,rst,cs:GPIO
-    var spi:SPIOutput
+    var spi:SPIInterface
     var pcd8544_buffer=[UInt8](repeating:0x0,count:LCDHEIGHT*LCDWIDTH/8)
     var currentFont=[UInt8]()
     var currentFontWidth=0,currentFontHeight=0
  
 
-    public init(spi:SPIOutput,dc:GPIO,rst:GPIO,cs:GPIO){
+    public init(spi:SPIInterface,dc:GPIO,rst:GPIO,cs:GPIO){
         self.spi=spi
         self.dc=dc
         self.rst=rst
