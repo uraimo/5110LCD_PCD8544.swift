@@ -61,11 +61,11 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 #if arch(arm) && os(Linux)
-    import SwiftyGPIO  //Comment this when not using the package manager
     import Glibc
 #else
     import Darwin //Needed for TravisCI
 #endif
+import SwiftyGPIO  //Comment this when not using the package manager
  
 public let LCDHEIGHT=48
 public let LCDWIDTH=84
