@@ -4,7 +4,7 @@
 
 <p>
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux-only" />
-<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/swift3-compatible-4BC51D.svg?style=flat" alt="Swift 3 compatible" /></a>
+<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/swift4-compatible-4BC51D.svg?style=flat" alt="Swift 4 compatible" /></a>
 <a href="https://raw.githubusercontent.com/uraimo/5110lcd_pcd8544.swift/master/LICENSE"><img src="http://img.shields.io/badge/license-BSD-blue.svg?style=flat" alt="License: BSD" /></a>
 </p>
 
@@ -23,7 +23,7 @@ The library need 5 GPIOs output to drive the display, two of those will act as s
 
 Every board supported by [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO): Raspberries, BeagleBones, C.H.I.P., etc...
 
-To use this library, you'll need a Linux ARM board with Swift 3.x, the old Swift 2.x version of this library is available [on a specific branch](https://github.com/uraimo/5110LCD_PCD8544.swift/tree/swift2).
+To use this library, you'll need a Linux ARM board with Swift 3.x/4.x, the old Swift 2.x version of this library is available [on a specific branch](https://github.com/uraimo/5110LCD_PCD8544.swift/tree/swift2).
 
 The example below will use a CHIP board but you can easily modify the example to use one the the other supported boards, full working demo projects for both the Chip and RaspberryPi2 (using the faster hardware SPI) are available in the `Examples` directory.
 
