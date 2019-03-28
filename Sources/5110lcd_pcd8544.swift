@@ -120,9 +120,9 @@ public class PCD8544{
 
         // x is which column
  	    if (color == .BLACK){
-		    pcd8544_buffer[x + (y/8)*LCDWIDTH] |= UInt8(truncatingBitPattern:0x1 << (y%8))
+            pcd8544_buffer[x + (y/8)*LCDWIDTH] |= UInt8(truncatingIfNeeded:0x1 << (y%8))
 	    }else{                        
-		    pcd8544_buffer[x + (y/8)*LCDWIDTH] &= UInt8(truncatingBitPattern:~(0x1 << (y%8)))
+            pcd8544_buffer[x + (y/8)*LCDWIDTH] &= UInt8(truncatingIfNeeded:~(0x1 << (y%8)))
         }
         updateBoundingBox(xmin:x,ymin:y,xmax:x,ymax:y)
     }
@@ -133,7 +133,7 @@ public class PCD8544{
             return 0
         }
 
-        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(truncatingBitPattern:y)%8)) & 0x1
+        return (pcd8544_buffer[x + (y/8)*LCDWIDTH] >> (UInt8(truncatingIfNeeded:y)%8)) & 0x1
     } 
 
     /// Draw a monochrome bitmap image to the internal graphic buffer, call `.display()` to update the screen
@@ -204,12 +204,12 @@ public class PCD8544{
                 break
             }
 
-            command(PCD8544_SETYADDR | UInt8(truncatingBitPattern:p))
+            command(PCD8544_SETYADDR | UInt8(truncatingIfNeeded:p))
 
             col = xUpdateMin
             maxcol = xUpdateMax
 
-            command(PCD8544_SETXADDR | UInt8(truncatingBitPattern:col))
+            command(PCD8544_SETXADDR | UInt8(truncatingIfNeeded:col))
 
             dataStream(Array(pcd8544_buffer[(LCDWIDTH*p)+col...(LCDWIDTH*p)+maxcol]))
         }                           
