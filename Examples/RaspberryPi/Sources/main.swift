@@ -1,8 +1,6 @@
-#if arch(arm) && os(Linux)
-    import SwiftyGPIO  // Comment this when not using the package manager
-    import PCD8544 // Comment this when not using the package manager
-    import Glibc
-#endif
+import SwiftyGPIO 
+import PCD8544
+import Glibc
  
 
 //Use the pins on the left side of the header:
