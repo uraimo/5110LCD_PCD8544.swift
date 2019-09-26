@@ -11,7 +11,7 @@ let package = Package(
             targets: ["PCD8544"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/uraimo/SwiftyGPIO.git", from: "1.1.0"),
+        .package(url: "https://github.com/uraimo/SwiftyGPIO.git", from: "1.0.0"),
     ],
     targets: [
         .target(
